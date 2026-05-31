@@ -1,0 +1,29 @@
+# Cliente puro do Ollama (usado pelo verificar_instalacao.py para listar modelos)
+ollama>=0.3.0
+
+# LLM e embeddings via Ollama (cliente LangChain)
+langchain-ollama>=0.2.0
+
+# Stack LangChain
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-community>=0.3.0
+langchain-text-splitters>=0.3.0
+
+# Vector store
+langchain-chroma>=0.1.4
+chromadb>=0.5.0
+
+# Orquestração de agentes
+langgraph>=0.2.0
+langgraph-checkpoint-sqlite>=2.0.0
+
+# Observabilidade (tracing)
+langsmith>=0.1.100
+
+# Carregamento de PDF (usado pelo PyPDFLoader)
+pypdf>=4.0.0
+
+# Utilidades
+python-dotenv>=1.0.0
+rich>=13.7.0
