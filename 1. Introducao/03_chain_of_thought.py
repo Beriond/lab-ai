@@ -22,14 +22,9 @@ import re
 import sys
 import time
 from dataclasses import dataclass
-from pathlib import Path
-
-from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
-
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 MODELO = "llama3.2"
 

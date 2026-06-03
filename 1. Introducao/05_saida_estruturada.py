@@ -10,15 +10,9 @@ diretamente uma instância do modelo. Sem precisar do `json.loads`.
 """
 
 from __future__ import annotations
-
-from pathlib import Path
-
-from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 from pydantic import BaseModel, Field
-
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 MODELO = "llama3.2"
 

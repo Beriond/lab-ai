@@ -23,6 +23,7 @@ def chamar_llm(prompt: str, temperature: float = 0.7) -> str:
     """Cria um ChatOllama e devolve o texto da resposta."""
     llm = ChatOllama(model=MODELO, temperature=temperature)
     resposta = llm.invoke(prompt)
+    print(resposta)
     return resposta.content
 
 

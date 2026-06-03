@@ -68,7 +68,7 @@ TEMPLATE_ZERO_SHOT = (
 
 def classificar_zero_shot(ticket: str) -> str:
     cadeia = _construir_cadeia(TEMPLATE_ZERO_SHOT)
-    return cadeia.invoke({"ticket": ticket}).strip().upper()
+    return cadeia.invoke({"ticket": ticket}).strip().upper() # está esperando uma string
 
 
 # ---------------------------------------------------------------------------
