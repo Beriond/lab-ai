@@ -32,8 +32,6 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
-
 MODELO = "llama3.2"
 
 # Categorias do "Sistema de Tickets da Acme" — totalmente inventadas

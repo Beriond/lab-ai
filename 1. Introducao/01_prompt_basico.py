@@ -15,8 +15,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from langchain_ollama import ChatOllama
 
-# Carrega o .env da raiz (ativa o LangSmith, se configurado)
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 MODELO = "llama3.2"
 
@@ -64,5 +62,6 @@ def demo_temperature() -> None:
 
 
 if __name__ == "__main__":
+    print("rodando")
     demo_prompt_vago_vs_especifico()
     demo_temperature()

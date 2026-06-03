@@ -101,10 +101,4 @@ python 04_role_prompting.py
 python 05_saida_estruturada.py
 ```
 
-Se você configurou o LangSmith no `.env` da raiz, cada execução vai aparecer no painel em https://smith.langchain.com, com tempo, tokens e prompt completo. Olhe lá!
-
 ---
-
-## 7. Desafios
-
-Abra o arquivo [`exercicios.py`](./exercicios.py) — ele tem 5 desafios para você completar usando `ChatOllama` + `ChatPromptTemplate`.
