@@ -27,10 +27,10 @@ def get_retriever(k: int = 4):
 def main() -> None:
     vs = get_vector_store()
     if vs._collection.count() == 0:  
-        print("A coleção está vazia. Rode primeiro: python 04_indexacao.py")
+        print("A coleção está vazia. Rode primeiro: python 03_indexacao.py")
         return
 
-    pergunta = "Qual o tema principal do material que indexei?"
+    pergunta = "Qual o tema principal do material que eu indexei?"
     print(f">> Pergunta de exemplo: {pergunta}\n")
 
     resultados = recuperar(pergunta, k=4)

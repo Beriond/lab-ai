@@ -17,7 +17,6 @@ from langchain_ollama import ChatOllama, OllamaEmbeddings
 
 # Carrega .env da raiz do projeto (ativa LangSmith se configurado)
 RAIZ_PROJETO = Path(__file__).resolve().parent.parent
-print(RAIZ_PROJETO)
 
 # ---------------------------------------------------------------------------
 # Configurações
@@ -29,8 +28,8 @@ NOME_COLECAO = "rag_aula"
 MODELO_LLM = "llama3.2"
 MODELO_EMBEDDING = "nomic-embed-text"
 
-TAMANHO_CHUNK = 800
-OVERLAP = 120
+TAMANHO_CHUNK = 500
+OVERLAP = 50
 
 
 def get_embeddings() -> OllamaEmbeddings:

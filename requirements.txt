@@ -24,6 +24,17 @@ langsmith>=0.1.100
 # Carregamento de PDF (usado pelo PyPDFLoader)
 pypdf>=4.0.0
 
+# Cliente HTTP (usado pela demo `4. Tools/01_tool_http_real.py` — ViaCEP)
+httpx>=0.27.0
+
+# MCP (Model Context Protocol) — usado pelas demos em `4. Tools`
+mcp>=1.27.0
+langchain-mcp-adapters>=0.3.0
+# Servidor MCP de tempo (Python, pip-instalável) — usado por `02_mcp_time.py`.
+# A demo `03_mcp_filesystem.py` usa o servidor oficial via `npx` (Node),
+# então requer Node.js instalado (e não entra aqui).
+mcp-server-time>=2026.6.4
+
 # Utilidades
 python-dotenv>=1.0.0
 rich>=13.7.0

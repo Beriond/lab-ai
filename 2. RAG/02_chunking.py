@@ -38,7 +38,7 @@ def chunkar_documentos(
     return splitter.split_documents(documentos)
 
 
-def demo_em_texto_inline() -> None:  # Rascunho
+def demo_em_texto_inline() -> None:  
     doc_demo = Document(
         page_content=(
             "RAG significa Retrieval-Augmented Generation. "
@@ -72,7 +72,7 @@ def demo_em_pdfs() -> None:
 
 
 if __name__ == "__main__":
-    #print("=== Demo 1 — chunking de um texto inline ===\n")
-    #demo_em_texto_inline()
+    print("=== Demo 1 — chunking de um texto inline ===\n")
+    demo_em_texto_inline()
     print("\n=== Demo 2 — chunking dos seus PDFs ===\n")
     demo_em_pdfs()
