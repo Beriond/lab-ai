@@ -21,19 +21,19 @@ Cada especialista devolve para o diretor uma lista de notícias com:
     - link
     - resumo curto
 
-A interface Streamlit (`app.py`) consome o gerador `executar_em_stream`
-para mostrar cada chamada de tool e cada notícia em tempo real.
+A interface Streamlit (`app.py`) chama `executar` e renderiza apenas
+a resposta final do diretor.
 
 Pré-requisitos:
     - Ollama com modelo `llama3.2` baixado
     - `pip install ddgs streamlit`  (já em requirements.txt)
 """
 from __future__ import annotations
-from typing import Any, Dict, Iterator, List
+from typing import Dict, List
 
-from langchain.agents import create_agent, AgentState
+from langchain.agents import create_agent
 from langchain_core.tools import tool
-from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
+from langchain_core.messages import HumanMessage
 from langchain_ollama import ChatOllama
 
 
@@ -70,10 +70,14 @@ def _ddg_search(query: str, max_results: int = 5) -> List[Dict[str, str]]:
 def _formatar_resultados(area: str, query: str, resultados: List[Dict[str, str]]) -> str:
     """Formata a saída de uma tool de busca em string legível para o LLM."""
     if not resultados:
-        return f"[{area}] Nenhum resultado encontrado para: {query}"
-    linhas = [f"[{area}] Resultados para: {query}"]
+        return f"[{area}] Nenhum resultado encontrado para '{query}'."
+
+    linhas = [f"[{area}] Resultados para '{query}':"]
     for i, r in enumerate(resultados, 1):
-        linhas.append(f"{i}. {r['title']}\n   {r['link']}\n   {r['body']}")
+        titulo = r.get("title", "(sem título)")
+        link = r.get("link", "")
+        trecho = r.get("body", "")
+        linhas.append(f"{i}. {titulo}\n   {link}\n   {trecho}")
     return "\n".join(linhas)
 
 
@@ -212,46 +216,7 @@ def criar_diretor(modelo: str = MODELO_PADRAO, temperatura: float = 0.0):
     return diretor
 
 
-def executar_em_stream(diretor, pergunta: str) -> Iterator[Dict[str, Any]]:
-    """Roda o diretor e emite eventos estruturados a cada passo.
-
-    Tipos de evento (chave `tipo`):
-        - "tool_call"   : o diretor chamou um especialista
-        - "tool_result" : o especialista respondeu
-        - "ai_message"  : mensagem em texto (síntese parcial ou final)
-        - "final"       : payload completo no fim
-    """
-    estado_final = None
-    seen = 0
-
-    for estado in diretor.stream(
-        {"messages": [HumanMessage(content=pergunta)]},
-        stream_mode="values",
-    ):
-        estado_final = estado
-        msgs = estado.get("messages", [])
-
-        for msg in msgs[seen:]:
-            tool_calls = getattr(msg, "tool_calls", None)
-            if isinstance(msg, AIMessage) and tool_calls:
-                for tc in tool_calls:
-                    yield {
-                        "tipo": "tool_call",
-                        "nome": tc["name"],
-                        "args": tc.get("args", {}),
-                    }
-            elif isinstance(msg, ToolMessage):
-                yield {
-                    "tipo": "tool_result",
-                    "nome": getattr(msg, "name", "tool"),
-                    "conteudo": msg.content,
-                }
-            elif isinstance(msg, AIMessage) and msg.content:
-                yield {"tipo": "ai_message", "conteudo": msg.content}
-
-        seen = len(msgs)
-
-    yield {
-        "tipo": "final",
-        "resposta": estado_final["messages"][-1].content if estado_final else "",
-    }
+def executar(diretor, pergunta: str) -> str:
+    """Roda o diretor e devolve a resposta final em texto."""
+    r = diretor.invoke({"messages": [HumanMessage(content=pergunta)]})
+    return r["messages"][-1].content

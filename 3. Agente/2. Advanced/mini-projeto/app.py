@@ -22,7 +22,7 @@ from __future__ import annotations
 import re
 import streamlit as st
 
-from subagentes_app import criar_diretor, executar_em_stream
+from subagentes_app import criar_diretor, executar
 
 
 # ---------------------------------------------------------------------------
@@ -98,7 +98,7 @@ pergunta = st.text_area(
     height=80,
 )
 
-executar = st.button("🚀 Buscar notícias", type="primary", use_container_width=True)
+executar_clicado = st.button("🚀 Buscar notícias", type="primary", use_container_width=True)
 
 
 # ---------------------------------------------------------------------------
@@ -116,19 +116,13 @@ def renderizar_resposta(conteudo: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Execução
-#
-# Consome o gerador inteiro, descarta os eventos intermediários e renderiza
-# apenas a síntese final do diretor.
+# Execução — renderiza apenas a síntese final do diretor.
 # ---------------------------------------------------------------------------
-if executar and pergunta.strip():
+if executar_clicado and pergunta.strip():
     diretor = get_diretor(modelo, temperatura)
 
     with st.spinner("Diretor consultando especialistas..."):
-        resposta_final = ""
-        for evento in executar_em_stream(diretor, pergunta):
-            if evento["tipo"] == "final":
-                resposta_final = evento["resposta"]
+        resposta_final = executar(diretor, pergunta)
 
     if resposta_final.strip():
         st.markdown("### 📝 Resposta")
@@ -136,5 +130,5 @@ if executar and pergunta.strip():
     else:
         st.warning("O diretor não retornou uma resposta final.")
 
-elif executar and not pergunta.strip():
+elif executar_clicado and not pergunta.strip():
     st.warning("Digite uma pergunta antes de executar.")

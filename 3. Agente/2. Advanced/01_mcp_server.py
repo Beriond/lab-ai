@@ -90,7 +90,6 @@ if __name__ == "__main__":
     print("Iniciando Travel_MCP Server (stdio)...")
     try:
         # transport="stdio": o servidor fala com o client via stdin/stdout.
-        # Outros transports possíveis: "sse" (HTTP), "ws" (WebSocket).
         mcp.run(transport="stdio")
     except KeyboardInterrupt:
         print("\nServidor MCP encerrado.")

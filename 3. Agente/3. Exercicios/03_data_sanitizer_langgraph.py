@@ -115,29 +115,15 @@ class EstadoSanitizacao(TypedDict):
 #    de negócio. Você precisa implementar as duas funções wrapper que
 #    chamam o LLM com esses prompts.
 # ---------------------------------------------------------------------------
+
+# Escreva o prompt adequado para realizar a tarefa
 SYSTEM_TRATAR_NOME = (
     "Você é um normalizador de nomes próprios.\n"
-    "Receberá UM nome e deve devolver o nome normalizado seguindo as regras:\n"
-    "  1) remover acentos (ex.: ã→a, ç→c, é→e)\n"
-    "  2) remover espaços no início e no fim da string\n"
-    "  3) para os espaços no meio da string substituir por _ "
-    "(ex: joao da silva -> joao_da_silva)\n"
-    "  4) converter TUDO para minúsculas\n"
-    "Responda APENAS com o nome normalizado, sem aspas, sem explicações, "
-    "sem pontuação extra, sem prefixos como 'Resposta:'.\n"
-    "Se o nome vier vazio, responda com uma linha vazia."
 )
 
+# Escreva o prompt adequado para realizar a tarefa
 SYSTEM_VALIDAR_EMAIL = (
     "Você é um validador de e-mails.\n"
-    "Receberá um endereço de e-mail e deve responder se ele é válido.:\n"
-    "Um email deve ser considerado como válido se obeder as regras 1) E 2)\n"
-    " 1) contém exatamente um '@'\n"
-    " 2) termina o email em '.com' ou '.com.br'\n"
-    " 3) exemplo valido = carolina.zambelli@yahoo.com\n"
-    " 4) exemplo invalido = carolina.zambelli.yahoo.com OU carolina.zambelli@yahoo\n"
-    "Responda APENAS com 'sim' ou 'nao' (sem acento, em minúsculo). "
-    "Nenhuma outra palavra, nenhuma explicação."
 )
 
 
@@ -175,51 +161,97 @@ def email_e_valido_llm(email: str) -> bool:
 def ler_csv(state: EstadoSanitizacao) -> dict:
     """Lê o CSV de entrada em modo dict (cada linha = um dicionário).
 
-    Dica:
-        - Abra o arquivo com encoding="latin-1" e newline="".
-        - Use csv.DictReader(f, delimiter=";").
-        - Devolva: {"linhas": [...], "total": N, "logs": ["..."]}.
+    O arquivo está em ISO-8859-1 com separador `;` — tratamos isso aqui
+    para que o resto do grafo receba dados "limpos".
     """
-    ## aqui coloque seu código ###
+    caminho = Path(state["caminho_in"])
+    print(f"\n[1/4] Lendo CSV: {caminho.name}")
+
+    with caminho.open(encoding="latin-1", newline="") as f:
+        leitor = csv.DictReader(f, delimiter=";")
+        linhas = [dict(linha) for linha in leitor]
+
+    total = len(linhas)
+    print(f"      {total} linhas lidas, colunas: {list(linhas[0].keys()) if linhas else []}")
+
+    return {
+        "linhas": linhas,
+        "total": total,
+        "logs": [f"[ler_csv] {total} linhas lidas de {caminho.name}"],
+    }
 
 
 def tratar_nomes(state: EstadoSanitizacao) -> dict:
     """Adiciona a coluna `nome_tratado` em cada linha — via LLM.
 
-    Dica:
-        - Itere sobre state["linhas"].
-        - Para cada linha: linha["nome_tratado"] = tratar_nome_llm(linha["nome"]).
-        - Devolva {"linhas": linhas, "logs": ["..."]}.
+    Cada nome é enviado individualmente ao LLM, que aplica as regras
+    descritas em `SYSTEM_TRATAR_NOME` (sem acento, trim, minúsculo).
     """
-    ## aqui coloque seu código ###
+    print("\n[2/4] Tratando coluna `nome` -> `nome_tratado` (via LLM)")
+
+    linhas = state["linhas"]
+    for i, linha in enumerate(linhas, start=1):
+        nome_original = linha.get("nome", "")
+        linha["nome_tratado"] = tratar_nome_llm(nome_original)
+        print(f"      ({i}/{len(linhas)}) {nome_original!r} -> {linha['nome_tratado']!r}")
+
+    return {
+        "linhas": linhas,
+        "logs": [f"[tratar_nomes] {len(linhas)} nomes normalizados via LLM"],
+    }
 
 
 def validar_emails(state: EstadoSanitizacao) -> dict:
-    """Adiciona a coluna `email_valido` ('sim'/'nao') em cada linha — via LLM.
+    """Adiciona a coluna `email_valido` ('sim'/'nao') — via LLM.
 
-    Atenção:
-        A coluna no CSV se chama "e-mail" (COM HÍFEN), não "email".
-
-    Dica:
-        - Itere sobre state["linhas"].
-        - Para cada linha: ok = email_e_valido_llm(linha["e-mail"]).
-        - linha["email_valido"] = "sim" if ok else "nao".
-        - Conte quantos foram válidos para registrar no log.
+    Cada e-mail é enviado ao LLM, que decide se é válido segundo as regras
+    descritas em `SYSTEM_VALIDAR_EMAIL` (contém '@' e termina em '.com'
+    ou '.com.br').
     """
-    ## aqui coloque seu código ###
+    print("\n[3/4] Validando coluna `e-mail` -> `email_valido` (via LLM)")
+
+    linhas = state["linhas"]
+    validos = 0
+    for i, linha in enumerate(linhas, start=1):
+        # A coluna no CSV se chama "e-mail" (com hífen!) — atenção.
+        email = linha.get("e-mail", "")
+        ok = email_e_valido_llm(email)
+        linha["email_valido"] = "sim" if ok else "nao"
+        if ok:
+            validos += 1
+        print(f"      ({i}/{len(linhas)}) {email!r} -> {linha['email_valido']}")
+
+    invalidos = len(linhas) - validos
+    print(f"      válidos: {validos}, inválidos: {invalidos}")
+
+    return {
+        "linhas": linhas,
+        "logs": [f"[validar_emails] válidos={validos}, inválidos={invalidos} (via LLM)"],
+    }
 
 
 def salvar_csv(state: EstadoSanitizacao) -> dict:
-    """Grava o resultado em `cadastro_nova.csv` no mesmo diretório.
+    """Grava o resultado em `cadastro_nova.csv` no mesmo diretório."""
+    caminho = Path(state["caminho_out"])
+    print(f"\n[4/4] Salvando: {caminho.name}")
 
-    Dica:
-        - Use csv.DictWriter com delimiter=";" e encoding="utf-8".
-        - Preserve a ordem original das colunas e acrescente as duas
-          novas (`nome_tratado`, `email_valido`) NO FINAL.
-        - Devolva {"logs": ["..."]} com um registro do que foi gravado.
-    """
-    ## aqui coloque seu código ###
+    linhas = state["linhas"]
+    if not linhas:
+        return {"logs": ["[salvar_csv] nenhuma linha — nada a gravar"]}
 
+    # Preserva a ordem original das colunas e acrescenta as novas no fim.
+    colunas_originais = [c for c in linhas[0].keys() if c not in ("nome_tratado", "email_valido")]
+    colunas = colunas_originais + ["nome_tratado", "email_valido"]
+
+    # Salvamos em UTF-8 (padrão moderno) com separador `;` para manter
+    # compatibilidade com o Excel brasileiro.
+    with caminho.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=colunas, delimiter=";")
+        writer.writeheader()
+        writer.writerows(linhas)
+
+    print(f"      OK — {len(linhas)} linhas gravadas em {caminho}")
+    return {"logs": [f"[salvar_csv] {len(linhas)} linhas em {caminho.name}"]}
 
 # ---------------------------------------------------------------------------
 # 4. MONTAGEM DO GRAFO

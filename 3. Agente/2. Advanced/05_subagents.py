@@ -93,7 +93,7 @@ def buscar_voos(origem: str, destino: str, data: str) -> str:
     try:
         from ddgs import DDGS
     except ImportError:
-        from duckduckgo_search import DDGS  # type: ignore
+        from duckduckgo_search import DDGS  
 
     query = f"voos {origem} para {destino} {data} passagem aérea"
     try:
@@ -178,13 +178,19 @@ def consultar_agente_voo(origem: str, destino: str, data: str) -> str:
 def registrar_viagem(
     origem: str,
     destino: str,
-    data: str,
+    data: str | dict,
     tool_call_id: Annotated[str, InjectedToolCallId],
 ) -> Command:
     """Registra os dados da viagem (origem, destino, data) no estado.
 
     Use SOMENTE depois de extrair os três dados do usuário.
+    `data` deve ser uma string no formato YYYY-MM-DD.
     """
+    # Llama 3.2 às vezes envia a data como dict — formatos vistos:
+    # {"value": "..."}, {"date": "..."}, {"data": "..."}, {"type": "date", "value": "..."}.
+    # Pegamos o primeiro valor string que parecer uma data.
+    if isinstance(data, dict):
+        data = next((v for v in data.values() if isinstance(v, str) and v != "date"), str(data))
     print(f"\n[registrar_viagem] origem={origem}, destino={destino}, data={data}")
     return Command(
         update={

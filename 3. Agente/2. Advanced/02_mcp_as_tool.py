@@ -84,7 +84,7 @@ async def main() -> None:
             "em português contendo todas as informações da viagem juntas "
             "(destino, dias, datas, pontos turísticos). Nunca passe um dict "
             "nem múltiplos campos — apenas uma string. Depois, devolva ao "
-            "usuário exatamente o roteiro que a tool retornou."
+            "usuário o roteiro."
         ),
     )
 

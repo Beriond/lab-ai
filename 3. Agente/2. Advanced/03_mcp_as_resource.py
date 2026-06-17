@@ -72,7 +72,7 @@ async def main() -> None:
             "Regras de Segurança da Agência (contexto injetado via MCP):\n"
             f"{policy_text}\n\n"
             "Responda em português, citando explicitamente as regras acima "
-            "quando forem aplicáveis. Não invente regras que não estejam no texto."
+            "quando forem aplicáveis."
         )
     )
 
